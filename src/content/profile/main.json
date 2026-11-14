@@ -1,0 +1,54 @@
+{
+  "name": "Md. Aslamul Alam",
+  "statusPill": "B.Pharm | AI & Digital Health",
+  "headline": "Pharmacy Student at Manarat International University | Healthcare Innovation, Research & Digital Health Enthusiast",
+  "aboutBio": "A dedicated Pharmacy student at Manarat International University with a strong passion for healthcare innovation, biomedical research, leadership, and emerging technologies. Actively engaged with national and global academic platforms, contributing to AI and digital health initiatives, and developing strong communication, networking, and problem-solving skills to create meaningful impact in the healthcare sector.",
+  "profileImage": "/profile.jpg",
+  "cvPath": "/cv.pdf",
+  "phone": "01616241385",
+  "email": "mdaslamulalam123@gmail.com",
+  "location": "Ashulia, Savar, Dhaka, Bangladesh",
+  "linkedin": "Md. Aslamul Alam",
+  "linkedinUrl": "https://www.linkedin.com/search/results/all/?keywords=Md.%20Aslamul%20Alam",
+  "coreSkills": [
+    "Healthcare Innovation",
+    "Drug Discovery (CADD)",
+    "Academic Research",
+    "Digital Literacy",
+    "Creative Thinking",
+    "Communication",
+    "Problem-Solving",
+    "Public Speaking",
+    "Computer Literacy"
+  ],
+  "languages": [
+    {
+      "language": "Bangla",
+      "proficiency": "Native"
+    },
+    {
+      "language": "English",
+      "proficiency": "Fluent"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Pharmacy (B.Pharm)",
+      "institution": "Manarat International University",
+      "session": "Ongoing",
+      "gpa": "Active Scholar"
+    },
+    {
+      "degree": "Higher Secondary Certificate (HSC)",
+      "institution": "Nizampur Government College",
+      "session": "Session: 2023–24",
+      "gpa": "GPA: 4.58"
+    },
+    {
+      "degree": "Secondary School Certificate (SSC)",
+      "institution": "Haithkandi High School",
+      "session": "Session: 2021–22",
+      "gpa": "GPA: 5.00"
+    }
+  ]
+}

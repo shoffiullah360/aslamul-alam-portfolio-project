@@ -1,11 +1,1715 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import { getCollection, getEntry } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const profileEntry = await getEntry('profile', 'main');
+const profile = profileEntry!.data;
+
+const rawExperience = await getCollection('experience');
+const experiences = rawExperience.sort((a, b) => a.data.order - b.data.order);
+
+const rawAchievements = await getCollection('achievements');
+const achievements = rawAchievements.sort((a, b) => a.data.order - b.data.order);
+
+const rawCertifications = await getCollection('certifications');
+const certifications = rawCertifications.sort((a, b) => a.data.order - b.data.order);
+
+const categories = [
+  'All',
+  'Research & Pharma',
+  'AI & Digital Health',
+  'Leadership & Civic',
+] as const;
+
+function getCategoryStyle(category: string) {
+  switch (category) {
+    case 'Research & Pharma':
+      return {
+        badge: 'border-cyan-500/35 bg-cyan-500/10 text-cyan-400',
+        dot: 'bg-cyan-400',
+      };
+    case 'AI & Digital Health':
+      return {
+        badge: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-400',
+        dot: 'bg-emerald-400',
+      };
+    case 'Leadership & Civic':
+      return {
+        badge: 'border-violet-500/35 bg-violet-500/10 text-violet-400',
+        dot: 'bg-violet-400',
+      };
+    default:
+      return {
+        badge: 'border-cyan-500/35 bg-cyan-500/10 text-cyan-400',
+        dot: 'bg-cyan-400',
+      };
+  }
+}
 ---
 
 <Layout>
-	<Welcome />
+  <!-- Top Scroll Progress Indicator -->
+  <div
+    class="fixed top-0 right-0 left-0 z-[70] h-[2px] bg-transparent pointer-events-none"
+    aria-hidden="true"
+  >
+    <div
+      id="scroll-progress"
+      class="h-full w-0 bg-gradient-to-r from-cyan-400 via-emerald-400 to-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.85)] transition-[width] duration-75"
+    >
+    </div>
+  </div>
+
+  <!-- Floating Glassmorphic Sticky Navigation Bar -->
+  <header class="fixed top-0 right-0 left-0 z-50 px-4 pt-3 sm:px-6 lg:px-8">
+    <nav
+      aria-label="Primary Navigation"
+      class="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-slate-800/80 light:border-slate-200/90 bg-slate-950/80 light:bg-white/85 px-5 py-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.24)] transition-colors duration-300"
+    >
+      <!-- Brand Identity: Clean, Confident Typography Only -->
+      <a
+        href="#top"
+        class="font-heading text-base sm:text-lg font-bold tracking-tight text-theme-heading hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-md"
+      >
+        {profile.name}
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="hidden md:flex items-center gap-1 lg:gap-1.5">
+        <a
+          href="#about"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          About
+        </a>
+        <a
+          href="#experience"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          Leadership
+        </a>
+        <a
+          href="#achievements"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          Achievements
+        </a>
+        <a
+          href="#certifications"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          Credentials (13)
+        </a>
+        <a
+          href="#education"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          Education
+        </a>
+        <a
+          href="#contact"
+          class="rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium text-theme-body hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+        >
+          Contact
+        </a>
+      </div>
+
+      <!-- Right Chrome: Theme Toggle, Clean Subtle CMS Ghost Link, and CV Pill CTA -->
+      <div class="flex items-center gap-2">
+        <!-- Dark/Light Theme Toggle -->
+        <button
+          id="theme-toggle"
+          type="button"
+          aria-label="Toggle Dark or Light Mode"
+          title="Toggle Dark / Light Theme"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 light:border-slate-200 bg-slate-900/60 light:bg-slate-100 text-theme-body hover:border-cyan-500/40 hover:text-cyan-400 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+        >
+          <!-- Sun Icon (shown in dark mode) -->
+          <svg
+            id="theme-icon-sun"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+            ></path>
+          </svg>
+          <!-- Moon Icon (shown in light mode) -->
+          <svg
+            id="theme-icon-moon"
+            class="hidden h-4 w-4 text-slate-700"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+            ></path>
+          </svg>
+        </button>
+
+        <!-- Keystatic CMS Admin Portal Ghost Link (No Pulsing Dot) -->
+        <a
+          href="/keystatic"
+          class="hidden sm:inline-flex h-9 items-center rounded-lg px-3 text-xs font-medium text-theme-muted hover:bg-slate-800/60 light:hover:bg-slate-100 hover:text-theme-heading transition-colors"
+          title="Open Keystatic CMS Admin"
+        >
+          CMS
+        </a>
+
+        <!-- Marketing Pill CTA: Resume / CV -->
+        <a
+          href={profile.cvPath}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 text-xs font-semibold text-slate-950 shadow-sm hover:brightness-110 transition-all"
+        >
+          <span>CV / Resume</span>
+          <svg
+            class="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+            ></path>
+          </svg>
+        </a>
+
+        <!-- Mobile Menu Trigger -->
+        <button
+          id="mobile-menu-btn"
+          type="button"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          aria-label="Toggle Navigation Menu"
+          class="flex md:hidden h-9 w-9 items-center justify-center rounded-lg border border-slate-800 light:border-slate-200 bg-slate-900/60 light:bg-slate-100 text-theme-heading"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden mx-auto mt-2 max-w-7xl rounded-2xl border border-slate-800 light:border-slate-200 bg-slate-950/95 light:bg-white/95 p-4 backdrop-blur-xl shadow-2xl"
+    >
+      <div class="flex flex-col gap-2">
+        <a
+          href="#about"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          About
+        </a>
+        <a
+          href="#experience"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          Leadership & Experience
+        </a>
+        <a
+          href="#achievements"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          Key Achievements & Workshops
+        </a>
+        <a
+          href="#certifications"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          Verified Credentials (13)
+        </a>
+        <a
+          href="#education"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          Education
+        </a>
+        <a
+          href="#contact"
+          class="mobile-nav-link rounded-lg px-3 py-2 text-sm font-medium text-theme-heading hover:bg-cyan-500/10"
+        >
+          Contact Details
+        </a>
+        <a
+          href="/keystatic"
+          class="mobile-nav-link rounded-lg border border-slate-800 light:border-slate-200 px-3 py-2 text-xs font-medium text-theme-muted"
+        >
+          Open Keystatic CMS (/keystatic)
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- ==========================================
+         HERO SECTION (Editorial, Executive & Natural Framing)
+         ========================================== -->
+    <section
+      id="top"
+      class="relative min-h-[88vh] flex items-center overflow-hidden pt-28 pb-20 lg:pt-36 lg:pb-28 bio-hex-grid"
+    >
+      <!-- Subtle Ambient Radial Mesh Gradient Background -->
+      <div
+        class="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div
+          class="animate-mesh absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-cyan-500/12 blur-[140px]"
+        >
+        </div>
+        <div
+          class="animate-mesh absolute top-1/4 right-10 h-[440px] w-[440px] rounded-full bg-emerald-500/10 blur-[140px]"
+          style="animation-delay: -5s;"
+        >
+        </div>
+      </div>
+
+      <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+        <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-12">
+          <!-- Left Column: Executive Copy & CTAs (7 Cols) -->
+          <div class="lg:col-span-7 flex flex-col items-start text-left">
+            <!-- Display Headline -->
+            <h1
+              class="display-tracking text-4xl sm:text-5xl lg:text-6xl font-extrabold text-theme-heading leading-[1.08] mb-4"
+            >
+              {profile.name}
+            </h1>
+
+            <!-- Sub-Headline -->
+            <p
+              class="text-base sm:text-lg lg:text-xl font-semibold text-cyan-400 light:text-cyan-700 mb-6 leading-relaxed"
+            >
+              {profile.headline}
+            </p>
+
+            <!-- Lead Summary -->
+            <p class="text-sm sm:text-base text-theme-body leading-relaxed mb-7 max-w-2xl">
+              {profile.aboutBio}
+            </p>
+
+            <!-- Clean, Understated Inline Metadata Tags with Minimal Icons (No Pulsing Neon Dots) -->
+            <div class="mb-8 flex flex-wrap items-center gap-2.5">
+              <div
+                class="inline-flex items-center gap-2 rounded-lg border border-slate-800/90 light:border-slate-200 bg-slate-900/60 light:bg-white/90 px-3.5 py-2 text-xs font-medium text-theme-heading shadow-2xs"
+              >
+                <svg
+                  class="h-4 w-4 text-amber-400 light:text-amber-600 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0"
+                  ></path>
+                </svg>
+                <span>Gold Scholar Award 2025 (UniV)</span>
+              </div>
+
+              <div
+                class="inline-flex items-center gap-2 rounded-lg border border-slate-800/90 light:border-slate-200 bg-slate-900/60 light:bg-white/90 px-3.5 py-2 text-xs font-medium text-theme-heading shadow-2xs"
+              >
+                <svg
+                  class="h-4 w-4 text-cyan-400 light:text-cyan-600 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
+                  ></path>
+                </svg>
+                <span>IEEE ICADHI 2026 Ambassador</span>
+              </div>
+
+              <div
+                class="inline-flex items-center gap-2 rounded-lg border border-slate-800/90 light:border-slate-200 bg-slate-900/60 light:bg-white/90 px-3.5 py-2 text-xs font-medium text-theme-heading shadow-2xs"
+              >
+                <svg
+                  class="h-4 w-4 text-emerald-400 light:text-emerald-600 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                  ></path>
+                </svg>
+                <span>{profile.location}</span>
+              </div>
+            </div>
+
+            <!-- Marketing Pill CTAs -->
+            <div class="flex flex-wrap items-center gap-3.5 w-full sm:w-auto">
+              <a
+                href="#certifications"
+                class="inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 px-7 text-sm font-semibold text-slate-950 shadow-md hover:brightness-110 transition-all"
+              >
+                <span>Explore 13 Verified Credentials</span>
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                  ></path>
+                </svg>
+              </a>
+
+              <a
+                href={profile.cvPath}
+                download
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-700/80 light:border-slate-300 bg-slate-900/75 light:bg-white px-6 text-sm font-semibold text-theme-heading hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all"
+              >
+                <svg
+                  class="h-4 w-4 text-cyan-400 light:text-cyan-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                  ></path>
+                </svg>
+                <span>Download CV</span>
+              </a>
+
+              <a
+                href="#contact"
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-800 light:border-slate-300 bg-transparent px-6 text-sm font-medium text-theme-body hover:border-cyan-500/40 hover:text-cyan-400 transition-all"
+              >
+                <span>Contact</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Column: Clean, Refined Portrait Frame (5 Cols) -->
+          <div class="lg:col-span-5 flex items-center justify-center lg:justify-end">
+            <div class="relative w-full max-w-[320px] sm:max-w-[350px]">
+              <!-- Soft Ambient Backlight Shadow -->
+              <div
+                class="pointer-events-none absolute -inset-3 rounded-3xl bg-gradient-to-tr from-cyan-500/15 via-slate-900/5 to-emerald-500/15 blur-2xl"
+                aria-hidden="true"
+              >
+              </div>
+
+              <!-- Refined Editorial Portrait Card Frame -->
+              <div
+                class="relative overflow-hidden rounded-2xl border border-slate-800/90 light:border-slate-200/90 bg-slate-900/60 light:bg-white/90 p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.45)] light:shadow-[0_20px_45px_rgba(15,23,42,0.1)] backdrop-blur-md"
+              >
+                <div class="aspect-[3/4] w-full overflow-hidden rounded-xl bg-slate-950">
+                  <img
+                    src={profile.profileImage}
+                    alt={profile.name}
+                    width="360"
+                    height="480"
+                    fetchpriority="high"
+                    class="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BENTO GRID ARCHITECTURE: ABOUT, METRICS & CORE COMPETENCIES
+         ========================================== -->
+    <section id="about" class="py-20 lg:py-28 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="mb-12 reveal-on-scroll">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">
+            <span>01 — EXECUTIVE TELEMETRY & COMPETENCIES</span>
+            <span class="h-px w-12 bg-cyan-500/40"></span>
+          </div>
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading">
+              Academic & Leadership Overview
+            </h2>
+          </div>
+        </div>
+
+        <!-- Bento Grid (12 Columns) -->
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-12">
+          <!-- Metric 1: 13+ Verified Credentials (4 Cols) -->
+          <div class="cyber-card p-6 md:col-span-4 reveal-on-scroll flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                VERIFIED PORTFOLIO
+              </span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                </svg>
+              </span>
+            </div>
+            <div>
+              <div class="font-heading display-tracking text-4xl sm:text-5xl font-extrabold text-theme-heading mb-1">
+                13+
+              </div>
+              <h3 class="text-base font-bold text-theme-heading mb-1">
+                Verified Credentials
+              </h3>
+              <p class="text-xs text-theme-body leading-relaxed">
+                Certified across Pharmaceutical CADD, Bioinformatics, Systematic Review, Agentic AI, and Research Seminars.
+              </p>
+            </div>
+          </div>
+
+          <!-- Metric 2: 3 Leadership Roles (4 Cols) -->
+          <div class="cyber-card p-6 md:col-span-4 reveal-on-scroll flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                EXECUTIVE LEADERSHIP
+              </span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                </svg>
+              </span>
+            </div>
+            <div>
+              <div class="font-heading display-tracking text-4xl sm:text-5xl font-extrabold text-theme-heading mb-1">
+                03
+              </div>
+              <h3 class="text-base font-bold text-theme-heading mb-1">
+                Active Leadership Roles
+              </h3>
+              <p class="text-xs text-theme-body leading-relaxed">
+                Serving as Campus Ambassador at IEEE ICADHI 2026 & Buniad, and Institution Representative at Volunteer for Bangladesh (VBD).
+              </p>
+            </div>
+          </div>
+
+          <!-- Metric 3: Gold Scholar Award (4 Cols) -->
+          <div class="cyber-card p-6 md:col-span-4 reveal-on-scroll flex flex-col justify-between border-amber-400/30">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                INTERNATIONAL RESEARCH HONOR
+              </span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/10 text-amber-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+                </svg>
+              </span>
+            </div>
+            <div>
+              <div class="font-heading display-tracking text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 light:from-amber-600 light:to-yellow-600 bg-clip-text text-transparent mb-1">
+                Gold Scholar
+              </div>
+              <h3 class="text-base font-bold text-theme-heading mb-1">
+                Gold Scholar Award (UniV 2025)
+              </h3>
+              <p class="text-xs text-theme-body leading-relaxed">
+                3rd International Poster Competition for Young Researchers — Thalassemia Prevention Biotechnology Research.
+              </p>
+            </div>
+          </div>
+
+          <!-- Executive Bio & Research Focus Bento Tile (7 Cols) -->
+          <div class="cyber-card p-6 sm:p-8 md:col-span-7 reveal-on-scroll flex flex-col justify-between">
+            <div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-cyan-400 mb-4">
+                <span>BIO-HEALTH MISSION STATEMENT</span>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-bold text-theme-heading mb-3">
+                Bridging Pharmaceutical Science, Biomedical Research & Emerging AI
+              </h3>
+              <p class="text-sm sm:text-base text-theme-body leading-relaxed mb-6">
+                {profile.aboutBio}
+              </p>
+            </div>
+
+            <!-- 3 Interdisciplinary Pillars -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-cyan-500/15">
+              <div class="rounded-xl border border-cyan-500/20 bg-slate-900/40 light:bg-slate-100/80 p-3.5">
+                <div class="text-[11px] font-semibold tracking-wide text-cyan-400 mb-1">
+                  01 — BIOTECH & CADD
+                </div>
+                <div class="text-xs font-medium text-theme-heading">
+                  Genetic Biotechnology & Computational Drug Discovery
+                </div>
+              </div>
+              <div class="rounded-xl border border-emerald-500/20 bg-slate-900/40 light:bg-slate-100/80 p-3.5">
+                <div class="text-[11px] font-semibold tracking-wide text-emerald-400 mb-1">
+                  02 — DIGITAL HEALTH
+                </div>
+                <div class="text-xs font-medium text-theme-heading">
+                  Agentic AI Workflows & Healthcare Innovation
+                </div>
+              </div>
+              <div class="rounded-xl border border-violet-500/20 bg-slate-900/40 light:bg-slate-100/80 p-3.5">
+                <div class="text-[11px] font-semibold tracking-wide text-violet-400 mb-1">
+                  03 — GLOBAL IMPACT
+                </div>
+                <div class="text-xs font-medium text-theme-heading">
+                  Scientific Publishing, Public Health & Youth Leadership
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Core Skills & Languages Bento Tile (5 Cols) -->
+          <div class="cyber-card p-6 sm:p-8 md:col-span-5 reveal-on-scroll flex flex-col justify-between">
+            <div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-emerald-400 mb-4">
+                <span>CORE COMPETENCIES MATRIX</span>
+              </div>
+              <h3 class="text-xl font-bold text-theme-heading mb-4">
+                Core Skills & Technical Capabilities
+              </h3>
+
+              <!-- Skills Pills -->
+              <div class="flex flex-wrap gap-2 mb-6">
+                {
+                  profile.coreSkills.map((skill, idx) => (
+                    <span
+                      class:list={[
+                        'inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-transform hover:-translate-y-0.5',
+                        idx < 3
+                          ? 'border-cyan-500/35 bg-cyan-500/12 text-cyan-300 light:text-cyan-800'
+                          : 'border-slate-700/70 light:border-slate-300 bg-slate-900/60 light:bg-slate-100 text-theme-heading',
+                      ]}
+                    >
+                      {skill}
+                    </span>
+                  ))
+                }
+              </div>
+            </div>
+
+            <!-- Languages & Communication Bar -->
+            <div class="pt-4 border-t border-cyan-500/15">
+              <div class="text-[11px] font-semibold uppercase tracking-wider text-theme-muted mb-2.5">
+                LANGUAGES & SCIENTIFIC COMMUNICATION
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                {
+                  profile.languages.map((lang) => (
+                    <div class="flex items-center justify-between rounded-lg border border-cyan-500/20 bg-slate-900/40 light:bg-slate-100/80 px-3.5 py-2">
+                      <span class="text-xs font-bold text-theme-heading">
+                        {lang.language}
+                      </span>
+                      <span class="text-xs font-medium text-cyan-400">
+                        {lang.proficiency}
+                      </span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         LEADERSHIP & EXPERIENCE SECTION (3 ROLES)
+         ========================================== -->
+    <section id="experience" class="py-20 lg:py-24 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-12 reveal-on-scroll">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">
+            <span>02 — EXECUTIVE LEADERSHIP & CAMPUS REPRESENTATION</span>
+            <span class="h-px w-12 bg-emerald-500/40"></span>
+          </div>
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading">
+              Leadership & Institutional Experience
+            </h2>
+            <p class="text-xs font-medium tracking-wide text-theme-muted">
+              03 ACTIVE ROLES • NATIONAL & INTERNATIONAL PLATFORMS
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {
+            experiences.map((exp, idx) => (
+              <article class="cyber-card p-6 sm:p-7 reveal-on-scroll flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-4">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                      <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      {exp.data.period}
+                    </span>
+                    <span class="text-xs font-medium text-theme-muted">
+                      0{idx + 1}
+                    </span>
+                  </div>
+
+                  <h3 class="text-xl font-bold text-theme-heading mb-1.5">
+                    {exp.data.title}
+                  </h3>
+                  <div class="text-sm font-semibold text-cyan-400 mb-3">
+                    {exp.data.organization}
+                  </div>
+                  <p class="text-sm text-theme-body leading-relaxed mb-6">
+                    {exp.data.description}
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 pt-4 border-t border-cyan-500/15 text-xs font-medium text-theme-muted">
+                  <svg
+                    class="h-4 w-4 text-cyan-400 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                    />
+                  </svg>
+                  <span>{exp.data.location}</span>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION A: "KEY ACHIEVEMENTS, RESEARCH & WORKSHOPS"
+         (Highlighted Bento & Summary Cards — No Screenshots)
+         ========================================== -->
+    <section id="achievements" class="py-20 lg:py-28 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-10 reveal-on-scroll">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">
+            <span>03 — SECTION A — RESEARCH, AI & WORKSHOPS</span>
+            <span class="h-px w-12 bg-cyan-500/40"></span>
+          </div>
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div>
+              <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading mb-2">
+                Key Achievements, Research & Workshops
+              </h2>
+              <p class="text-sm sm:text-base text-theme-body max-w-2xl">
+                Highlighted international research honors, computational drug design seminars, icddr,b public health study circles, and agentic AI masterclasses.
+              </p>
+            </div>
+
+            <!-- Interactive Category Filter Tabs for Achievements -->
+            <div
+              role="tablist"
+              aria-label="Filter Achievements by Category"
+              class="flex flex-wrap items-center gap-2"
+            >
+              {
+                categories.map((cat, idx) => {
+                  const count =
+                    cat === 'All'
+                      ? achievements.length
+                      : achievements.filter((a) => a.data.category === cat).length;
+                  return (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={idx === 0 ? 'true' : 'false'}
+                      data-achievement-filter={cat}
+                      class:list={[
+                        'achievement-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer',
+                        idx === 0
+                          ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300 light:text-cyan-900 shadow-[0_0_16px_rgba(6,182,212,0.25)]'
+                          : 'border-cyan-500/20 bg-slate-900/50 light:bg-slate-100 text-theme-body hover:border-cyan-500/40 hover:text-theme-heading',
+                      ]}
+                    >
+                      <span>{cat}</span>
+                      <span class="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[11px] font-semibold">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Filterable Bento Grid of 11 Achievements (No Screenshots) -->
+        <div
+          id="achievements-grid"
+          class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+        >
+          {
+            achievements.map((item) => {
+              const catStyle = getCategoryStyle(item.data.category);
+              const isFeatured = item.data.featured;
+              return (
+                <article
+                  data-category={item.data.category}
+                  class:list={[
+                    'achievement-card filter-item cyber-card p-6 sm:p-7 flex flex-col justify-between',
+                    isFeatured
+                      ? 'md:col-span-2 lg:col-span-3 border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-slate-900/70 to-cyan-500/10 light:from-amber-500/10 light:via-white/90 light:to-cyan-500/10'
+                      : '',
+                  ]}
+                >
+                  <div>
+                    <!-- Top Row: Category Pill + Date / Featured Badge -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                      <div class="flex flex-wrap items-center gap-2">
+                        {isFeatured && (
+                          <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-400/50 bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300 light:text-amber-800 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                            <svg
+                              class="h-3.5 w-3.5 text-amber-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 1l2.928 6.472L20 8.382l-5.184 4.802L16.18 20 10 16.472 3.82 20l1.364-6.816L0 8.382l7.072-.91L10 1z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                            <span>{item.data.badgeLabel || 'Featured Gold Award'}</span>
+                          </span>
+                        )}
+                        <span
+                          class:list={[
+                            'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium',
+                            catStyle.badge,
+                          ]}
+                        >
+                          <span class:list={['h-1.5 w-1.5 rounded-full', catStyle.dot]} />
+                          {item.data.category}
+                        </span>
+                      </div>
+
+                      {item.data.date && (
+                        <span class="text-xs font-medium text-theme-muted">
+                          {item.data.date}
+                        </span>
+                      )}
+                    </div>
+
+                    <!-- Title -->
+                    <h3
+                      class:list={[
+                        'font-bold text-theme-heading mb-2 leading-snug',
+                        isFeatured ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-lg',
+                      ]}
+                    >
+                      {item.data.title}
+                    </h3>
+
+                    <!-- Organizer & Session Lead -->
+                    <div class="text-xs sm:text-sm font-semibold text-cyan-400 mb-3">
+                      <span>Organizer: {item.data.organizer}</span>
+                      {item.data.sessionLead && (
+                        <span class="block mt-1 text-emerald-400">
+                          Session Lead: {item.data.sessionLead}
+                        </span>
+                      )}
+                    </div>
+
+                    <!-- Executive Summary / Highlight -->
+                    <p
+                      class:list={[
+                        'text-theme-body leading-relaxed',
+                        isFeatured ? 'text-sm sm:text-base max-w-4xl' : 'text-sm',
+                      ]}
+                    >
+                      {item.data.highlight}
+                    </p>
+                  </div>
+
+                  <div class="mt-5 pt-3.5 border-t border-cyan-500/15 flex items-center justify-between text-xs font-medium text-theme-muted">
+                    <span>VERIFIED ACTIVITY RECORD</span>
+                    <span class="text-cyan-400">#{String(item.data.order).padStart(2, '0')}</span>
+                  </div>
+                </article>
+              );
+            })
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION B: "CERTIFICATIONS & VERIFIED CREDENTIALS"
+         (13 Certificate Images + 2-Line Summary Grid + Interactive Lightbox)
+         ========================================== -->
+    <section id="certifications" class="py-20 lg:py-28 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-10 reveal-on-scroll">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">
+            <span>04 — SECTION B — VERIFIED CREDENTIAL VAULT</span>
+            <span class="h-px w-12 bg-emerald-500/40"></span>
+          </div>
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div>
+              <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading mb-2">
+                Certifications & Verified Credentials
+              </h2>
+              <p class="text-sm sm:text-base text-theme-body max-w-2xl">
+                Click any of the 13 official certificates below to inspect the high-resolution document in the interactive zoomable lightbox viewer.
+              </p>
+            </div>
+
+            <!-- Interactive Category Filter Tabs for Certifications -->
+            <div
+              role="tablist"
+              aria-label="Filter Certifications by Category"
+              class="flex flex-wrap items-center gap-2"
+            >
+              {
+                categories.map((cat, idx) => {
+                  const count =
+                    cat === 'All'
+                      ? certifications.length
+                      : certifications.filter((c) => c.data.category === cat).length;
+                  return (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={idx === 0 ? 'true' : 'false'}
+                      data-cert-filter={cat}
+                      class:list={[
+                        'cert-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer',
+                        idx === 0
+                          ? 'border-emerald-400 bg-emerald-500/20 text-emerald-300 light:text-emerald-900 shadow-[0_0_16px_rgba(16,185,129,0.25)]'
+                          : 'border-cyan-500/20 bg-slate-900/50 light:bg-slate-100 text-theme-body hover:border-emerald-500/40 hover:text-theme-heading',
+                      ]}
+                    >
+                      <span>{cat}</span>
+                      <span class="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- 13 Certificate Cards Grid -->
+        <div
+          id="certifications-grid"
+          class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {
+            certifications.map((cert, index) => {
+              const catStyle = getCategoryStyle(cert.data.category);
+              return (
+                <article
+                  data-category={cert.data.category}
+                  data-cert-index={index}
+                  data-cert-image={cert.data.image}
+                  data-cert-title={cert.data.title}
+                  data-cert-issuer={cert.data.issuer}
+                  data-cert-date={cert.data.date}
+                  data-cert-category={cert.data.category}
+                  data-cert-summary={cert.data.summary}
+                  data-cert-id={cert.data.credentialId || ''}
+                  tabindex="0"
+                  role="button"
+                  aria-label={`View certificate: ${cert.data.title} issued by ${cert.data.issuer}`}
+                  class="cert-card filter-item cyber-card group cursor-pointer flex flex-col justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                >
+                  <div>
+                    <!-- Certificate Image Container -->
+                    <div class="relative aspect-[16/11] w-full overflow-hidden bg-slate-950 border-b border-cyan-500/20">
+                      <img
+                        src={cert.data.image}
+                        alt={`${cert.data.title} — ${cert.data.issuer}`}
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="412"
+                        class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <!-- Subtle Overlay on Hover -->
+                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
+
+                      <!-- Top-Left Category Tag (No Dot) -->
+                      <div class="absolute top-3 left-3">
+                        <span
+                          class:list={[
+                            'inline-flex items-center rounded-full border backdrop-blur-md px-3 py-1 text-[11px] font-semibold',
+                            catStyle.badge,
+                          ]}
+                        >
+                          {cert.data.category}
+                        </span>
+                      </div>
+
+                      <!-- Top-Right Date Pill -->
+                      <div class="absolute top-3 right-3">
+                        <span class="rounded-full border border-slate-700/80 bg-slate-950/80 px-2.5 py-1 text-[11px] font-medium text-slate-200 backdrop-blur-md">
+                          {cert.data.date}
+                        </span>
+                      </div>
+
+                      {cert.data.credentialId && (
+                        <div class="absolute bottom-3 left-3">
+                          <span class="rounded bg-slate-950/85 px-2.5 py-0.5 text-[11px] font-medium text-cyan-300 border border-cyan-500/30">
+                            ID: {cert.data.credentialId}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <!-- Card Body (Full Unclipped Issuer & Summary) -->
+                    <div class="p-5">
+                      <div class="text-xs font-semibold text-cyan-400 mb-1.5 leading-snug">
+                        {cert.data.issuer}
+                      </div>
+                      <h3 class="text-base font-bold text-theme-heading mb-2 leading-snug group-hover:text-cyan-400 transition-colors">
+                        {cert.data.title}
+                      </h3>
+                      <p class="text-xs sm:text-sm text-theme-body leading-relaxed">
+                        {cert.data.summary}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="px-5 pb-4 pt-3 border-t border-cyan-500/10 flex items-center justify-end">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 group-hover:text-emerald-400 transition-colors">
+                      <span>View Certificate</span>
+                      <span aria-hidden="true" class="group-hover:translate-x-0.5 transition-transform">→</span>
+                    </span>
+                  </div>
+                </article>
+              );
+            })
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         EDUCATION SECTION
+         ========================================== -->
+    <section id="education" class="py-20 lg:py-24 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-12 reveal-on-scroll">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">
+            <span>05 — ACADEMIC FOUNDATION</span>
+            <span class="h-px w-12 bg-cyan-500/40"></span>
+          </div>
+          <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading">
+            Education & Academic Excellence
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {
+            profile.education.map((edu, idx) => (
+              <div class="cyber-card p-6 sm:p-7 reveal-on-scroll flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-4">
+                    <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
+                      {edu.session}
+                    </span>
+                    {edu.gpa && (
+                      <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400">
+                        {edu.gpa}
+                      </span>
+                    )}
+                  </div>
+                  <h3 class="text-lg sm:text-xl font-bold text-theme-heading mb-2">
+                    {edu.degree}
+                  </h3>
+                  <p class="text-sm font-medium text-theme-body">
+                    {edu.institution}
+                  </p>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-cyan-500/15 flex items-center justify-between text-xs font-medium text-theme-muted">
+                  <span>ACADEMIC TIER 0{idx + 1}</span>
+                  <span class="text-cyan-400">VERIFIED</span>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         CONTACT & EXECUTIVE COLLABORATION SECTION
+         ========================================== -->
+    <section id="contact" class="py-20 lg:py-28 relative">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="cyber-card p-8 sm:p-10 lg:p-12 reveal-on-scroll">
+          <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 items-start">
+            <!-- Left Column: Direct Contact Channels (7 Cols) -->
+            <div class="lg:col-span-7">
+              <div class="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400 mb-4">
+                <span>06 — INITIATE COLLABORATION</span>
+              </div>
+              <h2 class="heading-tracking text-3xl sm:text-4xl font-bold text-theme-heading mb-4">
+                Connect with {profile.name}
+              </h2>
+              <p class="text-sm sm:text-base text-theme-body leading-relaxed mb-8 max-w-xl">
+                Available for pharmaceutical research collaborations, digital health & AI initiatives, academic seminars, and youth leadership partnerships.
+              </p>
+
+              <!-- 4 Contact Cards Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <!-- Phone -->
+                <a
+                  href={`tel:${profile.phone}`}
+                  class="group rounded-xl border border-cyan-500/20 bg-slate-900/50 light:bg-slate-100/90 p-4 hover:border-cyan-400 transition-colors"
+                >
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 mb-1">
+                    DIRECT PHONE
+                  </div>
+                  <div class="text-sm sm:text-base font-bold text-theme-heading group-hover:text-cyan-400 transition-colors">
+                    {profile.phone}
+                  </div>
+                </a>
+
+                <!-- Email -->
+                <a
+                  href={`mailto:${profile.email}`}
+                  class="group rounded-xl border border-emerald-500/20 bg-slate-900/50 light:bg-slate-100/90 p-4 hover:border-emerald-400 transition-colors"
+                >
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 mb-1">
+                    EMAIL ADDRESS
+                  </div>
+                  <div class="text-xs sm:text-sm font-bold text-theme-heading break-all group-hover:text-emerald-400 transition-colors">
+                    {profile.email}
+                  </div>
+                </a>
+
+                <!-- Location -->
+                <div class="rounded-xl border border-cyan-500/20 bg-slate-900/50 light:bg-slate-100/90 p-4">
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400 mb-1">
+                    LOCATION
+                  </div>
+                  <div class="text-sm font-bold text-theme-heading">
+                    {profile.location}
+                  </div>
+                </div>
+
+                <!-- LinkedIn -->
+                <a
+                  href={profile.linkedinUrl || 'https://www.linkedin.com'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="group rounded-xl border border-emerald-500/20 bg-slate-900/50 light:bg-slate-100/90 p-4 hover:border-emerald-400 transition-colors"
+                >
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 mb-1">
+                    LINKEDIN PROFILE
+                  </div>
+                  <div class="text-sm font-bold text-theme-heading flex items-center justify-between group-hover:text-emerald-400 transition-colors">
+                    <span>{profile.linkedin}</span>
+                    <span>↗</span>
+                  </div>
+                </a>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <a
+                  href={profile.cvPath}
+                  download
+                  class="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 px-6 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(6,182,212,0.35)] hover:brightness-110 transition-all"
+                >
+                  <span>Download Full CV (PDF)</span>
+                </a>
+                <a
+                  href="/keystatic"
+                  class="inline-flex h-11 items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/60 light:bg-slate-100 px-5 text-xs font-semibold text-cyan-400 hover:border-cyan-400 transition-all"
+                >
+                  <span>Manage Content in Keystatic CMS (/keystatic)</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Right Column: Quick Direct Dispatch Form (5 Cols) -->
+            <div class="lg:col-span-5 w-full rounded-2xl border border-cyan-500/25 bg-slate-950/65 light:bg-white/90 p-6">
+              <h3 class="text-lg font-bold text-theme-heading mb-1">
+                Quick Research & Inquiry Dispatch
+              </h3>
+              <p class="text-xs text-theme-muted mb-5">
+                Compose a direct message to {profile.email}
+              </p>
+
+              <form id="contact-form" class="space-y-4">
+                <div>
+                  <label
+                    for="sender-name"
+                    class="block text-xs font-medium text-theme-body mb-1.5"
+                  >
+                    Your Name / Organization
+                  </label>
+                  <input
+                    id="sender-name"
+                    name="name"
+                    type="text"
+                    required
+                    placeholder="Dr. Rahman / Healthcare Research Lab"
+                    class="w-full rounded-[6px] border border-cyan-500/25 bg-slate-900/80 light:bg-slate-50 px-3.5 py-2.5 text-sm text-theme-heading placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    for="sender-subject"
+                    class="block text-xs font-medium text-theme-body mb-1.5"
+                  >
+                    Collaboration Topic
+                  </label>
+                  <input
+                    id="sender-subject"
+                    name="subject"
+                    type="text"
+                    required
+                    placeholder="Research Collaboration / Digital Health Seminar"
+                    class="w-full rounded-[6px] border border-cyan-500/25 bg-slate-900/80 light:bg-slate-50 px-3.5 py-2.5 text-sm text-theme-heading placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    for="sender-message"
+                    class="block text-xs font-medium text-theme-body mb-1.5"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="sender-message"
+                    name="message"
+                    rows="3"
+                    required
+                    placeholder="Hello Aslam, we would love to connect regarding..."
+                    class="w-full rounded-[6px] border border-cyan-500/25 bg-slate-900/80 light:bg-slate-50 px-3.5 py-2.5 text-sm text-theme-heading placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  class="w-full h-11 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 font-bold text-xs sm:text-sm text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:brightness-110 transition-all cursor-pointer"
+                >
+                  Launch Email Client →
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-cyan-500/15 py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-theme-muted">
+          © {new Date().getFullYear()} <strong class="text-theme-heading">{profile.name}</strong>. B.Pharm | Healthcare Innovation, Research & Digital Health.
+        </span>
+      </div>
+      <div class="flex items-center gap-5 text-xs font-medium text-theme-muted">
+        <a href="#top" class="hover:text-cyan-400 transition-colors">Top ↑</a>
+        <a href={profile.cvPath} target="_blank" class="hover:text-cyan-400 transition-colors">CV PDF</a>
+        <a href="/keystatic" class="hover:text-cyan-400 transition-colors">Keystatic CMS</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       INTERACTIVE FULL-SCREEN ZOOMABLE LIGHTBOX MODAL
+       (With Next/Prev Navigation, Zoom Controls & Keyboard Support)
+       ========================================== -->
+  <div
+    id="cert-lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="lightbox-title"
+    aria-hidden="true"
+    class="fixed inset-0 z-[100] hidden items-center justify-center overflow-y-auto bg-slate-950/90 backdrop-blur-2xl p-3 sm:p-6"
+  >
+    <!-- Backdrop Click Area -->
+    <div id="lightbox-backdrop" class="fixed inset-0"></div>
+
+    <!-- Modal Container -->
+    <div
+      class="relative z-10 my-auto flex w-full max-w-4xl flex-col max-h-[90vh] overflow-y-auto rounded-2xl border border-cyan-500/35 bg-slate-900/95 light:bg-white shadow-[0_0_60px_rgba(6,182,212,0.25)]"
+    >
+      <!-- Top Control Bar -->
+      <div class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-cyan-500/20 bg-slate-900/95 light:bg-white/95 backdrop-blur-md px-4 py-3 sm:px-6">
+        <div class="flex items-center gap-2.5">
+          <span
+            id="lightbox-category"
+            class="rounded-full border border-cyan-500/35 bg-cyan-500/15 px-3 py-0.5 text-xs font-semibold text-cyan-300 light:text-cyan-800"
+          >
+            Category
+          </span>
+          <span
+            id="lightbox-counter"
+            class="text-xs font-medium text-theme-muted"
+          >
+            1 / 13
+          </span>
+        </div>
+
+        <!-- Zoom & Close Controls -->
+        <div class="flex items-center gap-2">
+          <button
+            id="lightbox-zoom-out"
+            type="button"
+            aria-label="Zoom Out"
+            class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-cyan-500/25 bg-slate-800/80 light:bg-slate-100 text-xs font-bold text-theme-heading hover:border-cyan-400 cursor-pointer"
+          >
+            −
+          </button>
+          <button
+            id="lightbox-zoom-reset"
+            type="button"
+            aria-label="Reset Zoom"
+            class="flex h-8 items-center justify-center rounded-[6px] border border-cyan-500/25 bg-slate-800/80 light:bg-slate-100 px-2.5 text-xs font-semibold text-cyan-400 hover:border-cyan-400 cursor-pointer"
+          >
+            100%
+          </button>
+          <button
+            id="lightbox-zoom-in"
+            type="button"
+            aria-label="Zoom In"
+            class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-cyan-500/25 bg-slate-800/80 light:bg-slate-100 text-xs font-bold text-theme-heading hover:border-cyan-400 cursor-pointer"
+          >
+            +
+          </button>
+          <a
+            id="lightbox-open-raw"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hidden sm:inline-flex h-8 items-center rounded-[6px] border border-cyan-500/25 bg-slate-800/80 light:bg-slate-100 px-2.5 text-xs font-medium text-theme-heading hover:border-cyan-400"
+          >
+            Full File ↗
+          </a>
+          <button
+            id="lightbox-close"
+            type="button"
+            aria-label="Close Lightbox (Esc)"
+            class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-rose-500/35 bg-rose-500/15 text-rose-300 light:text-rose-700 hover:bg-rose-500/30 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Center Image Viewport with Prev/Next Controls -->
+      <div class="relative overflow-auto bg-slate-950/90 flex items-center justify-center p-4 sm:p-6 select-none">
+        <!-- Prev Button -->
+        <button
+          id="lightbox-prev"
+          type="button"
+          aria-label="Previous Certificate"
+          class="absolute left-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-cyan-500/40 bg-slate-950/85 text-cyan-400 shadow-lg hover:bg-cyan-500 hover:text-slate-950 transition-colors cursor-pointer"
+        >
+          ←
+        </button>
+
+        <!-- Zoomable Certificate Image -->
+        <div id="lightbox-img-wrapper" class="transition-transform duration-200 ease-out origin-center">
+          <img
+            id="lightbox-img"
+            src=""
+            alt=""
+            class="max-h-[50vh] sm:max-h-[55vh] w-auto max-w-full rounded-lg object-contain shadow-2xl mx-auto"
+          />
+        </div>
+
+        <!-- Next Button -->
+        <button
+          id="lightbox-next"
+          type="button"
+          aria-label="Next Certificate"
+          class="absolute right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-cyan-500/40 bg-slate-950/85 text-cyan-400 shadow-lg hover:bg-cyan-500 hover:text-slate-950 transition-colors cursor-pointer"
+        >
+          →
+        </button>
+      </div>
+
+      <!-- Bottom Metadata Caption Bar (Always Fully Visible & Unclipped) -->
+      <div class=" shrink-0 border-t border-cyan-500/20 bg-slate-900/95 light:bg-slate-50 px-5 py-4 sm:px-6 sm:py-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 id="lightbox-title" class="text-base sm:text-lg font-bold text-theme-heading">
+            Certificate Title
+          </h3>
+          <span id="lightbox-date" class="text-xs font-semibold text-cyan-400">
+            Date
+          </span>
+        </div>
+        <div id="lightbox-issuer" class="text-xs font-semibold text-emerald-400 mb-2">
+          Issuer
+        </div>
+        <p id="lightbox-summary" class="text-xs sm:text-sm text-theme-body leading-relaxed">
+          Summary
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-Side Interactive Scripts -->
+  <script is:inline>
+    (function () {
+      // 1. Scroll Progress Indicator
+      const progressBar = document.getElementById('scroll-progress');
+      function updateScrollProgress() {
+        if (!progressBar) return;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight =
+          document.documentElement.scrollHeight -
+          document.documentElement.clientHeight;
+        const pct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+        progressBar.style.width = pct + '%';
+      }
+      window.addEventListener('scroll', updateScrollProgress, { passive: true });
+      updateScrollProgress();
+
+      // 2. IntersectionObserver Scroll-Reveal
+      const revealEls = document.querySelectorAll('.reveal-on-scroll');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+        );
+        revealEls.forEach((el) => observer.observe(el));
+      } else {
+        revealEls.forEach((el) => el.classList.add('is-visible'));
+      }
+
+      // 3. Mouse-Tracking Spotlight Glow on .cyber-card
+      const cards = document.querySelectorAll('.cyber-card');
+      cards.forEach((card) => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mouse-x', x + 'px');
+          card.style.setProperty('--mouse-y', y + 'px');
+        });
+      });
+
+      // 4. Dark / Light Theme Toggle
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('theme-icon-sun');
+      const moonIcon = document.getElementById('theme-icon-moon');
+
+      function syncThemeIcons() {
+        const isLight = document.documentElement.classList.contains('light');
+        if (sunIcon && moonIcon) {
+          sunIcon.classList.toggle('hidden', isLight);
+          moonIcon.classList.toggle('hidden', !isLight);
+        }
+      }
+      syncThemeIcons();
+
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+          const html = document.documentElement;
+          const isCurrentlyLight = html.classList.contains('light');
+          if (isCurrentlyLight) {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            try {
+              localStorage.setItem('theme', 'dark');
+            } catch (e) {}
+          } else {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            try {
+              localStorage.setItem('theme', 'light');
+            } catch (e) {}
+          }
+          syncThemeIcons();
+        });
+      }
+
+      // 5. Mobile Menu Toggle
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+          const expanded = mobileMenuBtn.getAttribute('aria-expanded') === 'true';
+          mobileMenuBtn.setAttribute('aria-expanded', String(!expanded));
+          mobileMenu.classList.toggle('hidden');
+        });
+        mobileMenu.querySelectorAll('.mobile-nav-link').forEach((link) => {
+          link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
+
+      // 6. Interactive Category Filter Tabs — Section A (Achievements)
+      const achievementTabs = document.querySelectorAll('.achievement-tab-btn');
+      const achievementCards = document.querySelectorAll('.achievement-card');
+
+      achievementTabs.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const selectedCat = btn.getAttribute('data-achievement-filter') || 'All';
+          achievementTabs.forEach((b) => {
+            const active = b === btn;
+            b.setAttribute('aria-selected', String(active));
+            b.className = active
+              ? 'achievement-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer border-cyan-400 bg-cyan-500/20 text-cyan-300 light:text-cyan-900 shadow-[0_0_16px_rgba(6,182,212,0.25)]'
+              : 'achievement-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer border-cyan-500/20 bg-slate-900/50 light:bg-slate-100 text-theme-body hover:border-cyan-500/40 hover:text-theme-heading';
+          });
+
+          achievementCards.forEach((card) => {
+            const cardCat = card.getAttribute('data-category');
+            if (selectedCat === 'All' || cardCat === selectedCat) {
+              card.classList.remove('is-hidden');
+            } else {
+              card.classList.add('is-hidden');
+            }
+          });
+        });
+      });
+
+      // 7. Interactive Category Filter Tabs — Section B (Certifications)
+      const certTabs = document.querySelectorAll('.cert-tab-btn');
+      const certCards = Array.from(document.querySelectorAll('.cert-card'));
+
+      certTabs.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const selectedCat = btn.getAttribute('data-cert-filter') || 'All';
+          certTabs.forEach((b) => {
+            const active = b === btn;
+            b.setAttribute('aria-selected', String(active));
+            b.className = active
+              ? 'cert-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer border-emerald-400 bg-emerald-500/20 text-emerald-300 light:text-emerald-900 shadow-[0_0_16px_rgba(16,185,129,0.25)]'
+              : 'cert-tab-btn inline-flex h-9 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition-all cursor-pointer border-cyan-500/20 bg-slate-900/50 light:bg-slate-100 text-theme-body hover:border-emerald-500/40 hover:text-theme-heading';
+          });
+
+          certCards.forEach((card) => {
+            const cardCat = card.getAttribute('data-category');
+            if (selectedCat === 'All' || cardCat === selectedCat) {
+              card.classList.remove('is-hidden');
+            } else {
+              card.classList.add('is-hidden');
+            }
+          });
+        });
+      });
+
+      // 8. Interactive Full-Screen Zoomable Lightbox Modal
+      const lightbox = document.getElementById('cert-lightbox');
+      const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+      const lightboxImg = document.getElementById('lightbox-img');
+      const lightboxImgWrapper = document.getElementById('lightbox-img-wrapper');
+      const lightboxTitle = document.getElementById('lightbox-title');
+      const lightboxIssuer = document.getElementById('lightbox-issuer');
+      const lightboxDate = document.getElementById('lightbox-date');
+      const lightboxCategory = document.getElementById('lightbox-category');
+      const lightboxSummary = document.getElementById('lightbox-summary');
+      const lightboxCounter = document.getElementById('lightbox-counter');
+      const lightboxOpenRaw = document.getElementById('lightbox-open-raw');
+      const btnClose = document.getElementById('lightbox-close');
+      const btnPrev = document.getElementById('lightbox-prev');
+      const btnNext = document.getElementById('lightbox-next');
+      const btnZoomIn = document.getElementById('lightbox-zoom-in');
+      const btnZoomOut = document.getElementById('lightbox-zoom-out');
+      const btnZoomReset = document.getElementById('lightbox-zoom-reset');
+
+      let currentCertIndex = 0;
+      let currentZoom = 1;
+
+      function applyZoom(val) {
+        currentZoom = Math.min(2.5, Math.max(0.75, val));
+        if (lightboxImgWrapper) {
+          lightboxImgWrapper.style.transform = `scale(${currentZoom})`;
+        }
+        if (btnZoomReset) {
+          btnZoomReset.textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+      }
+
+      function getVisibleCertCards() {
+        const visible = certCards.filter((c) => !c.classList.contains('is-hidden'));
+        return visible.length > 0 ? visible : certCards;
+      }
+
+      function renderLightboxCard(cardEl) {
+        if (!cardEl) return;
+        const visibleList = getVisibleCertCards();
+        const posInVisible = visibleList.indexOf(cardEl);
+        const imgSrc = cardEl.getAttribute('data-cert-image') || '';
+        const title = cardEl.getAttribute('data-cert-title') || '';
+        const issuer = cardEl.getAttribute('data-cert-issuer') || '';
+        const date = cardEl.getAttribute('data-cert-date') || '';
+        const category = cardEl.getAttribute('data-cert-category') || '';
+        const summary = cardEl.getAttribute('data-cert-summary') || '';
+        const credId = cardEl.getAttribute('data-cert-id') || '';
+
+        applyZoom(1);
+
+        if (lightboxImg) {
+          lightboxImg.src = imgSrc;
+          lightboxImg.alt = `${title} — ${issuer}`;
+        }
+        if (lightboxTitle) lightboxTitle.textContent = title;
+        if (lightboxIssuer) {
+          lightboxIssuer.textContent = credId ? `${issuer} • ID: ${credId}` : issuer;
+        }
+        if (lightboxDate) lightboxDate.textContent = date;
+        if (lightboxCategory) lightboxCategory.textContent = category;
+        if (lightboxSummary) lightboxSummary.textContent = summary;
+        if (lightboxCounter) {
+          lightboxCounter.textContent = `${posInVisible + 1} / ${visibleList.length}`;
+        }
+        if (lightboxOpenRaw) {
+          lightboxOpenRaw.href = imgSrc;
+        }
+      }
+
+      function openLightbox(indexInAll) {
+        currentCertIndex = indexInAll;
+        const targetCard = certCards[currentCertIndex];
+        renderLightboxCard(targetCard);
+        if (lightbox) {
+          lightbox.classList.remove('hidden');
+          lightbox.classList.add('flex');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      function closeLightbox() {
+        if (lightbox) {
+          lightbox.classList.add('hidden');
+          lightbox.classList.remove('flex');
+          lightbox.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+      }
+
+      function stepLightbox(delta) {
+        const visibleList = getVisibleCertCards();
+        const currentCard = certCards[currentCertIndex];
+        let idx = visibleList.indexOf(currentCard);
+        if (idx === -1) idx = 0;
+        const nextIdx = (idx + delta + visibleList.length) % visibleList.length;
+        const nextCard = visibleList[nextIdx];
+        currentCertIndex = certCards.indexOf(nextCard);
+        renderLightboxCard(nextCard);
+      }
+
+      certCards.forEach((card, idx) => {
+        card.addEventListener('click', () => openLightbox(idx));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openLightbox(idx);
+          }
+        });
+      });
+
+      if (btnClose) btnClose.addEventListener('click', closeLightbox);
+      if (lightboxBackdrop) lightboxBackdrop.addEventListener('click', closeLightbox);
+      if (btnPrev) btnPrev.addEventListener('click', () => stepLightbox(-1));
+      if (btnNext) btnNext.addEventListener('click', () => stepLightbox(1));
+      if (btnZoomIn) btnZoomIn.addEventListener('click', () => applyZoom(currentZoom + 0.25));
+      if (btnZoomOut) btnZoomOut.addEventListener('click', () => applyZoom(currentZoom - 0.25));
+      if (btnZoomReset) btnZoomReset.addEventListener('click', () => applyZoom(1));
+
+      window.addEventListener('keydown', (e) => {
+        if (!lightbox || lightbox.classList.contains('hidden')) return;
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowRight') stepLightbox(1);
+        else if (e.key === 'ArrowLeft') stepLightbox(-1);
+        else if (e.key === '+' || e.key === '=') applyZoom(currentZoom + 0.25);
+        else if (e.key === '-') applyZoom(currentZoom - 0.25);
+      });
+
+      // 9. Contact Form Direct Mailto Dispatch
+      const contactForm = document.getElementById('contact-form');
+      if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('sender-name')?.value || '';
+          const subject = document.getElementById('sender-subject')?.value || '';
+          const message = document.getElementById('sender-message')?.value || '';
+          const mailtoUrl = `mailto:mdaslamulalam123@gmail.com?subject=${encodeURIComponent(
+            subject + ' — from ' + name
+          )}&body=${encodeURIComponent(message + '\n\nFrom: ' + name)}`;
+          window.location.href = mailtoUrl;
+        });
+      }
+    })();
+  </script>
 </Layout>
