@@ -60,8 +60,8 @@ const achievements = defineCollection({
   }),
 });
 
-const certifications = defineCollection({
-  loader: glob({ pattern: '*.json', base: './src/content/certifications' }),
+const certificates = defineCollection({
+  loader: glob({ pattern: '*.json', base: './src/content/certificates' }),
   schema: z.object({
     title: z.string(),
     issuer: z.string(),
@@ -75,9 +75,39 @@ const certifications = defineCollection({
   }),
 });
 
+const publications = defineCollection({
+  loader: glob({ pattern: '*.json', base: './src/content/publications' }),
+  schema: z.object({
+    title: z.string(),
+    journalOrConference: z.string(),
+    date: z.string(),
+    authors: z.string(),
+    summary: z.string(),
+    paperUrl: z.string().optional().default(''),
+    status: z.enum(['Published', 'Under Review', 'Preprint']).default('Published'),
+    order: z.number().default(1),
+  }),
+});
+
+const workshops = defineCollection({
+  loader: glob({ pattern: '*.json', base: './src/content/workshops' }),
+  schema: z.object({
+    title: z.string(),
+    organizer: z.string(),
+    date: z.string(),
+    role: z.string().default('Participant'),
+    summary: z.string(),
+    certificateImage: z.string().optional(),
+    order: z.number().default(1),
+  }),
+});
+
 export const collections = {
   profile,
   experience,
   achievements,
-  certifications,
+  certificates,
+  certifications: certificates,
+  publications,
+  workshops,
 };

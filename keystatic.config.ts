@@ -1,31 +1,16 @@
 import { config, fields, collection, singleton } from '@keystatic/core';
 
-const repoOwner =
-  typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_KEYSTATIC_GITHUB_OWNER
-    ? import.meta.env.PUBLIC_KEYSTATIC_GITHUB_OWNER
-    : '';
-const repoName =
-  typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_KEYSTATIC_GITHUB_REPO
-    ? import.meta.env.PUBLIC_KEYSTATIC_GITHUB_REPO
-    : '';
-
-const useGithubStorage = Boolean(repoOwner && repoName);
-
 export default config({
-  storage: useGithubStorage
-    ? {
-        kind: 'github',
-        repo: {
-          owner: repoOwner,
-          name: repoName,
+  storage:
+    process.env.NODE_ENV === 'development'
+      ? { kind: 'local' }
+      : {
+          kind: 'github',
+          repo: 'shoffiullah360/aslamul-alam-portfolio-project',
         },
-      }
-    : {
-        kind: 'local',
-      },
   ui: {
     brand: {
-      name: 'Md. Aslamul Alam — Bio-Health Portfolio CMS',
+      name: 'Md. Aslamul Alam — Portfolio CMS',
     },
   },
   singletons: {
@@ -75,55 +60,39 @@ export default config({
     }),
   },
   collections: {
-    experience: collection({
-      label: 'Leadership & Experience',
+    publications: collection({
+      label: 'Publications (Research Papers)',
       slugField: 'title',
-      path: 'src/content/experience/*',
+      path: 'src/content/publications/*',
       format: { data: 'json' },
       schema: {
-        title: fields.slug({ name: { label: 'Role Title' } }),
-        organization: fields.text({ label: 'Organization / Event' }),
-        period: fields.text({ label: 'Date / Period' }),
-        location: fields.text({ label: 'Location & Mode' }),
-        description: fields.text({ label: 'Role Description', multiline: true }),
-        order: fields.integer({ label: 'Display Order', defaultValue: 1 }),
-      },
-    }),
-    achievements: collection({
-      label: 'Key Achievements & Workshops',
-      slugField: 'title',
-      path: 'src/content/achievements/*',
-      format: { data: 'json' },
-      schema: {
-        title: fields.slug({ name: { label: 'Achievement / Workshop Title' } }),
-        category: fields.select({
-          label: 'Category',
+        title: fields.slug({ name: { label: 'Paper Title' } }),
+        journalOrConference: fields.text({ label: 'Journal or Conference' }),
+        date: fields.text({ label: 'Publication Date' }),
+        authors: fields.text({ label: 'Authors' }),
+        summary: fields.text({ label: 'Abstract / Summary', multiline: true }),
+        paperUrl: fields.text({ label: 'Paper URL / DOI Link' }),
+        status: fields.select({
+          label: 'Publication Status',
           options: [
-            { label: 'Research & Pharma', value: 'Research & Pharma' },
-            { label: 'AI & Digital Health', value: 'AI & Digital Health' },
-            { label: 'Leadership & Civic', value: 'Leadership & Civic' },
+            { label: 'Published', value: 'Published' },
+            { label: 'Under Review', value: 'Under Review' },
+            { label: 'Preprint', value: 'Preprint' },
           ],
-          defaultValue: 'Research & Pharma',
+          defaultValue: 'Published',
         }),
-        organizer: fields.text({ label: 'Organizer' }),
-        date: fields.text({ label: 'Date / Duration' }),
-        sessionLead: fields.text({ label: 'Session Lead / Special Note (Optional)' }),
-        highlight: fields.text({ label: 'Executive Summary / Highlight', multiline: true }),
-        featured: fields.checkbox({ label: 'Featured Gold Award Card', defaultValue: false }),
-        badgeLabel: fields.text({ label: 'Special Badge Label (Optional)' }),
         order: fields.integer({ label: 'Display Order', defaultValue: 1 }),
       },
     }),
-    certifications: collection({
-      label: 'Certifications & Verified Credentials',
+    certificates: collection({
+      label: 'Certificates (Verified Credentials)',
       slugField: 'title',
-      path: 'src/content/certifications/*',
+      path: 'src/content/certificates/*',
       format: { data: 'json' },
       schema: {
         title: fields.slug({ name: { label: 'Certificate Title' } }),
         issuer: fields.text({ label: 'Issuing Organization' }),
-        date: fields.text({ label: 'Issue Date' }),
-        credentialId: fields.text({ label: 'Credential ID (Optional)' }),
+        date: fields.text({ label: 'Date' }),
         category: fields.select({
           label: 'Category',
           options: [
@@ -133,13 +102,33 @@ export default config({
           ],
           defaultValue: 'Research & Pharma',
         }),
+        summary: fields.text({ label: 'Summary', multiline: true }),
         image: fields.image({
           label: 'Certificate Image',
           directory: 'public/certificates',
           publicPath: '/certificates/',
         }),
-        summary: fields.text({ label: '2-Line Concise Summary', multiline: true }),
+        credentialId: fields.text({ label: 'Credential ID (Optional)' }),
         featured: fields.checkbox({ label: 'Featured Credential', defaultValue: false }),
+        order: fields.integer({ label: 'Display Order', defaultValue: 1 }),
+      },
+    }),
+    workshops: collection({
+      label: 'Workshops & Specialized Training',
+      slugField: 'title',
+      path: 'src/content/workshops/*',
+      format: { data: 'json' },
+      schema: {
+        title: fields.slug({ name: { label: 'Workshop Title' } }),
+        organizer: fields.text({ label: 'Organizer' }),
+        date: fields.text({ label: 'Date / Duration' }),
+        role: fields.text({ label: 'Role / Participation' }),
+        summary: fields.text({ label: 'Summary / Highlights', multiline: true }),
+        certificateImage: fields.image({
+          label: 'Certificate Image (Optional)',
+          directory: 'public/certificates',
+          publicPath: '/certificates/',
+        }),
         order: fields.integer({ label: 'Display Order', defaultValue: 1 }),
       },
     }),
