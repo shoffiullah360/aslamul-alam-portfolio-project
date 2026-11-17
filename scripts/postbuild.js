@@ -3,7 +3,6 @@ import path from 'node:path';
 
 const distDir = path.resolve('dist');
 const clientDir = path.join(distDir, 'client');
-const serverDir = path.join(distDir, 'server');
 
 if (fs.existsSync(clientDir)) {
   // Copy all files from dist/client to dist root so Cloudflare Pages works whether output dir is "dist" or "dist/client"

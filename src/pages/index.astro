@@ -19,8 +19,8 @@ const workshops = rawWorkshops.sort((a, b) => a.data.order - b.data.order);
 const rawAchievements = await getCollection('achievements');
 const achievements = rawAchievements.sort((a, b) => a.data.order - b.data.order);
 
-const rawCertifications = await getCollection('certificates');
-const certifications = rawCertifications.sort((a, b) => a.data.order - b.data.order);
+const rawCertificates = await getCollection('certificates');
+const certifications = rawCertificates.sort((a, b) => a.data.order - b.data.order);
 
 const categories = [
   'All',
