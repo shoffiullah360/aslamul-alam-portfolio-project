@@ -76,20 +76,6 @@ const certificates = defineCollection({
   }),
 });
 
-const publications = defineCollection({
-  loader: glob({ pattern: '*.json', base: './src/content/publications' }),
-  schema: z.object({
-    title: z.string(),
-    journalOrConference: z.string(),
-    date: z.string(),
-    authors: z.string(),
-    summary: z.string(),
-    paperUrl: z.string().optional().default(''),
-    status: z.enum(['Published', 'Under Review', 'Preprint']).default('Published'),
-    order: z.number().default(1),
-  }),
-});
-
 const workshops = defineCollection({
   loader: glob({ pattern: '*.json', base: './src/content/workshops' }),
   schema: z.object({
@@ -109,6 +95,5 @@ export const collections = {
   achievements,
   certificates,
   certifications: certificates,
-  publications,
   workshops,
 };

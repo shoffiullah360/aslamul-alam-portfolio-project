@@ -60,30 +60,6 @@ export default config({
     }),
   },
   collections: {
-    publications: collection({
-      label: 'Publications (Research Papers)',
-      slugField: 'title',
-      path: 'src/content/publications/*',
-      format: { data: 'json' },
-      schema: {
-        title: fields.slug({ name: { label: 'Paper Title' } }),
-        journalOrConference: fields.text({ label: 'Journal or Conference' }),
-        date: fields.text({ label: 'Publication Date' }),
-        authors: fields.text({ label: 'Authors' }),
-        summary: fields.text({ label: 'Abstract / Summary', multiline: true }),
-        paperUrl: fields.text({ label: 'Paper URL / DOI Link' }),
-        status: fields.select({
-          label: 'Publication Status',
-          options: [
-            { label: 'Published', value: 'Published' },
-            { label: 'Under Review', value: 'Under Review' },
-            { label: 'Preprint', value: 'Preprint' },
-          ],
-          defaultValue: 'Published',
-        }),
-        order: fields.integer({ label: 'Display Order', defaultValue: 1 }),
-      },
-    }),
     certificates: collection({
       label: 'Certificates (Verified Credentials)',
       slugField: 'title',
